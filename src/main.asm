@@ -71,7 +71,7 @@ drawmenu:
 	push ax
 	push bx
 
-	xor cx, cx
+	mov cx, 2 ; by default 2
 .loop:
 	cmp cx, max_menu
 	jge .done
@@ -110,9 +110,18 @@ drawmenu:
 	jmp .next_item
 
 .got_item:
-	call puts
+	mov al, [current]
+	cmp cl, al
+	je .this
+	;mov ah, 0x0e
+	;mov al, '>'
+	;int 0x10
 	inc cx
 	jmp .loop
+.this:
+	mov ah, 0x0e
+	mov al, '>'
+	int 0x10
 .done:
 	pop ax
 	pop bx
