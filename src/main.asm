@@ -11,6 +11,22 @@ start:
 ; params:
 ; 	- ds:si points to string
 ;
+
+clearscreen:
+	mov ah, 0x06
+	mov al, 0
+	mov bh, 0x07
+	mov cx, 0x0000
+	mov dx, 0x184F
+	int 0x10
+	; moving cursor to the top left position
+	mov ah, 0x02
+	mov bh, 0x00
+	mov dh, 0x00
+	mov dl, 0x00
+	int 0x10
+	ret
+
 puts:
 	; save registers we will modify
 	push si
@@ -47,6 +63,64 @@ newline:
 
 	ret
 
+
+drawmenu:
+	push cx
+	push dx
+	push si
+	push ax
+	push bx
+
+	xor cx, cx
+.loop:
+	cmp cx, max_menu
+	jge .done
+	
+	mov ah, 0x02
+	mov bh, 0x00
+	mov dh, cl
+	mov dl, 0x00
+	int 0x10
+	
+	mov al, [current]
+	cmp cl, al
+	jne .not_selected
+	
+	mov ah, 0x0E
+	mov al, '>'
+	int 0x10
+	jmp .draw_text
+
+.not_selected:
+	mov ah, 0x0E
+	mov al, ' '
+	int 0x10
+
+.draw_text:
+	mov bx, 0
+	je .got_item
+.next_item:
+	cmp bx,0
+	je .got_item
+.skip:
+	lodsb
+	cmp al, 0
+	jne .skip
+	dec bx
+	jmp .next_item
+
+.got_item:
+	call puts
+	inc cx
+	jmp .loop
+.done:
+	pop ax
+	pop bx
+	pop si
+	pop dx
+	pop cx
+	ret		
+
 main:
 	
 	mov ax, 0
@@ -55,6 +129,18 @@ main:
 
 	mov ss, ax
 	mov sp, 0x7C00	
+
+	call clearscreen
+	;call drawmenu	
+	;mov ah, 0x06
+	;mov al, 0
+	;mov bh, 0x07
+	;mov cx, 0x0000
+	;mov dx, 0x184F
+	;int 0x10
+
+	mov si, header
+	call puts
 	
 	; printing message
 	mov si, message
@@ -69,6 +155,14 @@ main:
 	mov si, msg_three
 	call puts
 
+	call drawmenu
+	
+	mov si, current
+	add si, 5
+	mov ah, 7
+	mul si
+	call puts
+
 	hlt
 	
 	jmp $
@@ -77,10 +171,15 @@ main:
 	jmp .halt
 
 
-message db "Arch Linux", ENDL, 0
-msg db "WaxusBS", ENDL, 0
-msg_two db "Gentoo Linux", ENDL, 0
-msg_three db "Debian Linux", ENDL, 0
+message 	db "    Arch Linux", ENDL, 0
+msg 		db "    WaxusBS", ENDL, 0
+msg_two 	db "    Gentoo Linux", ENDL, 0
+msg_three 	db "    Debian Linux", ENDL, 0
+header 		db "Select boot option: ", ENDL, ENDL, 0
+
+current db 2
+
+max_menu equ 6 
 
 times 510-($-$$) db 0
 dw 0AA55h 
