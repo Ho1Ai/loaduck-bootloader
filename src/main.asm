@@ -132,7 +132,68 @@ drawmenu:
 	ret		
 
 
+
+changeOption:
+	push si
+	push ax
+
 	
+
+gotolinestart:
+	push ax
+.do:
+	mov ah, 0x0e
+	mov al, 0x0D
+	mov bh, 0
+	int 0x10
+	jmp .done
+.done:
+	pop ax
+	ret
+
+
+
+work:
+	push si
+	push ax
+.do:
+	xor ah, ah
+	int 0x16
+	cmp ah, 0x48
+	je .go_top
+	cmp ah, 0x50
+	je .go_bottom
+	jmp .do
+.go_top:
+	mov al, [current]
+	cmp al, [possible_min]
+	jne .increase
+	je .do_nothing
+.do_nothing:
+	jmp .done
+.increase:
+	mov al, [current]
+	dec al
+	mov [current], al
+	jmp .done
+.go_bottom:
+	mov al, [current]
+	cmp al, [possible_max]
+	jne .decrease
+	je .do_nothing
+.decrease:
+	mov al, [current]
+	inc al
+	mov [current], al
+	jmp .done
+.done:
+	pop si
+	pop ax
+	jmp start
+	;jmp start ; redrawing whole menu. It is not that heavy at the moment so I can do like that
+	ret
+	
+
 
 main:
 	
@@ -155,6 +216,14 @@ main:
 	;mov si, bootloadername
 	;call puts
 
+	mov si, bootloadername
+	call puts
+	
+	mov si, 0x0A
+	call puts
+	mov si, 0x0D
+	call puts
+
 	mov si, header
 	call puts
 	
@@ -171,7 +240,18 @@ main:
 	mov si, msg_three
 	call puts
 
+	mov si, 0x0A
+	call puts
+	mov si, 0x0D
+	call puts
+
+	;mov si, ; IDK what it was supposed to do, lmao
+
+	call gotolinestart
+
 	call drawmenu
+	
+	call work
 	
 	;mov si, current
 	;add si, 5
@@ -194,9 +274,11 @@ msg_three 	db "    Debian Linux", ENDL, 0
 bootloadername		db "LoaDuck Bootloader", ENDL, ENDL, ENDL, 0
 header 		db "Select boot option: ", ENDL, ENDL, 0
 
-current db 2
+possible_min db 5
+possible_max db 8
+current db 6
 
-max_menu equ 6 
+max_menu equ 9
 
 times 510-($-$$) db 0
 dw 0AA55h 
