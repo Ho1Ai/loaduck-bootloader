@@ -30,7 +30,9 @@ main:
 	mov si, msg
 	call puts
 
-msg db "Hello, World!", 0x0A, 0x0D
+msg db "Hello, World!", 0x0A, 0x0D ; just default output
 
 times 510-($-$$) db 0
 dw 0xAA55
+
+;maybe it won't be used in the future and will be removed from this program.
