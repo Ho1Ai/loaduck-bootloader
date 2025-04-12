@@ -71,14 +71,14 @@ drawmenu:
 	push ax
 	push bx
 
-	mov cx, 2 ; by default 2
+	mov cx, 1; by default 2
 .loop:
 	cmp cx, max_menu
 	jge .done
 	
 	mov ah, 0x02
 	mov bh, 0x00
-	mov dh, cl
+	mov dh, cl-1
 	mov dl, 0x00
 	int 0x10
 	
@@ -86,10 +86,11 @@ drawmenu:
 	cmp cl, al
 	jne .not_selected
 	
-	mov ah, 0x0E
-	mov al, '>'
-	int 0x10
-	jmp .draw_text
+	;mov ah, 0x0E
+	;mov al, '>'
+	;int 0x10
+	;jmp .draw_text
+	;; this stuff could add another one '>' symbol
 
 .not_selected:
 	mov ah, 0x0E
@@ -130,6 +131,9 @@ drawmenu:
 	pop cx
 	ret		
 
+
+	
+
 main:
 	
 	mov ax, 0
@@ -147,6 +151,9 @@ main:
 	;mov cx, 0x0000
 	;mov dx, 0x184F
 	;int 0x10
+
+	;mov si, bootloadername
+	;call puts
 
 	mov si, header
 	call puts
@@ -166,11 +173,11 @@ main:
 
 	call drawmenu
 	
-	mov si, current
-	add si, 5
-	mov ah, 7
-	mul si
-	call puts
+	;mov si, current
+	;add si, 5
+	;mov ah, 7
+	;mul si
+	;call puts
 
 	hlt
 	
@@ -184,6 +191,7 @@ message 	db "    Arch Linux", ENDL, 0
 msg 		db "    WaxusBS", ENDL, 0
 msg_two 	db "    Gentoo Linux", ENDL, 0
 msg_three 	db "    Debian Linux", ENDL, 0
+bootloadername		db "LoaDuck Bootloader", ENDL, ENDL, ENDL, 0
 header 		db "Select boot option: ", ENDL, ENDL, 0
 
 current db 2
